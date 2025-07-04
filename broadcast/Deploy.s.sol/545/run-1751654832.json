@@ -7,8 +7,8 @@
       "contractAddress": "0x9ed9a918385727a4c3f38f285e5a43b1e1cb2403",
       "function": null,
       "arguments": [
-        "Fractional Art Collection",
-        "FRAC"
+        "Galerie Collection",
+        "GLR"
       ],
       "transaction": {
         "from": "0x9c0f4579e0260a75316019d26fdd306d854ad2ad",

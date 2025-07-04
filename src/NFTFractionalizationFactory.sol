@@ -59,8 +59,8 @@ contract NFTFractionalizationFactory is Ownable, ReentrancyGuard {
         
         fractionalToken = address(newFractionalToken);
         
-        // Mint NFT to the fractional token contract with metadata
-        tokenId = nftContract.mint(fractionalToken, fractionalToken, _uri);
+        // Mint NFT to the factory owner (deployer) instead of the fractional token
+        tokenId = nftContract.mint(owner(), fractionalToken, _uri);
         
         // Initialize the fractional token with the correct token ID
         newFractionalToken.initialize(tokenId);

@@ -10,8 +10,8 @@ contract DeployScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the NFT Fractionalization Factory
-        string memory nftName = "Fractional Art Collection";
-        string memory nftSymbol = "FRAC";
+        string memory nftName = "Galerie Collection";
+        string memory nftSymbol = "GLR";
         
         NFTFractionalizationFactory factory = new NFTFractionalizationFactory(
             nftName,

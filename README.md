@@ -9,7 +9,8 @@ forge script script/Deploy.s.sol --rpc-url https://testnet.evm.nodes.onflow.org 
 ## 2. Creating an NFT
 ```bash
 # Create an NFT with an image
-# Format: totalShares sharePrice name symbol imageURI
+# Format: totalShares sharePrice(in wei) name symbol imageURI
+# Example: 1000 shares at 0.001 FLOW per share
 cast send $FACTORY_CONTRACT_ADDRESS \
 "createFractionalizedNFT(uint256,uint256,string,string,string)" \
 1000 \
@@ -40,7 +41,7 @@ cast call $FRACTIONAL_TOKEN_ADDRESS "sharePrice()" --rpc-url https://testnet.evm
 
 ### Purchase Shares
 ```bash
-# Purchase X shares (value = X * price_per_share)
+# Purchase X shares (value = X * price_per_share in FLOW)
 cast send $FRACTIONAL_TOKEN_ADDRESS "purchaseShares(uint256)" $SHARE_AMOUNT \
 --value $TOTAL_AMOUNT_IN_WEI \
 --rpc-url https://testnet.evm.nodes.onflow.org \
@@ -55,7 +56,7 @@ cast call $FRACTIONAL_TOKEN_ADDRESS "balanceOf(address)" $YOUR_ADDRESS --rpc-url
 
 ## 4. Complete Example with Mona Lisa
 ```bash
-# 1. Create Mona Lisa NFT
+# 1. Create Mona Lisa NFT (1000 shares at 0.001 FLOW each)
 cast send $FACTORY_CONTRACT_ADDRESS \
 "createFractionalizedNFT(uint256,uint256,string,string,string)" \
 1000 \
@@ -66,7 +67,7 @@ cast send $FACTORY_CONTRACT_ADDRESS \
 --rpc-url https://testnet.evm.nodes.onflow.org \
 --private-key $PRIVATE_KEY
 
-# 2. Purchase 1 share
+# 2. Purchase 1 share (0.001 FLOW)
 cast send $FRACTIONAL_TOKEN_ADDRESS "purchaseShares(uint256)" 1 \
 --value 1000000000000000 \
 --rpc-url https://testnet.evm.nodes.onflow.org \
@@ -106,8 +107,8 @@ export FRACTIONAL_TOKEN_ADDRESS=fractional_token_address
 ## Important Notes
 - Replace environment variables with your actual values
 - Contract addresses change after each deployment
-- 1 FLOW = 1000000000 (1e9) tokens
-- Prices are in wei (1 ETH = 1e18 wei)
+- Flow EVM uses wei units: 1 FLOW = 1000000000000000000 wei (1e18)
+- Payments are in FLOW tokens but calculated in wei units for EVM compatibility
 - Keep your private keys secret and never share them
 
 ## Contract Addresses (Flow EVM Testnet)
@@ -130,7 +131,7 @@ To view your NFTs and their shares:
 2. Search for the NFT contract or fractional token address
 3. In the "Tokens" section, you'll see your NFTs and their details
 
-## Price Calculations
-- 1 share = 0.001 ETH = 1000000000000000 wei
-- 10 shares = 0.01 ETH = 10000000000000000 wei
-- 100 shares = 0.1 ETH = 100000000000000000 wei
+## Price Calculations (Flow EVM uses wei units)
+- 1 share = 0.001 FLOW = 1000000000000000 wei
+- 10 shares = 0.01 FLOW = 10000000000000000 wei
+- 100 shares = 0.1 FLOW = 100000000000000000 wei
