@@ -2,12 +2,8 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-solc_version = "0.8.19"
+solc_version = "0.8.20"
 
 [rpc_endpoints]
 flow = "https://mainnet.evm.nodes.onflow.org"
 flow-testnet = "https://testnet.evm.nodes.onflow.org"
-
-[etherscan]
-flow = { key = "${FLOWSCAN_API_KEY}", chain = 747, url = "https://evm.flowscan.io/api" }
-flow-testnet = { key = "${FLOWSCAN_API_KEY}", chain = 545, url = "https://evm-testnet.flowscan.io/api" }
