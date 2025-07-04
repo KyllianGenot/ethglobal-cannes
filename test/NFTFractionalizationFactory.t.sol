@@ -220,7 +220,7 @@ contract NFTFractionalizationFactoryTest is Test {
         ) = factory.getNFTInfo(tokenId);
 
         assertEq(fractionalTokenAddress, fractionalToken);
-        assertEq(nftOwner, fractionalToken); // NFT is owned by the fractional contract
+        assertEq(nftOwner, owner); // NFT is owned by the factory owner (deployer)
         assertEq(totalShares, TOTAL_SHARES);
         assertEq(sharesSold, 0);
         assertEq(sharePrice, SHARE_PRICE);
