@@ -12,11 +12,8 @@ contract DeployScript is Script {
         // Deploy the NFT Fractionalization Factory
         string memory nftName = "Galerie Collection";
         string memory nftSymbol = "GLR";
-        
-        NFTFractionalizationFactory factory = new NFTFractionalizationFactory(
-            nftName,
-            nftSymbol
-        );
+
+        NFTFractionalizationFactory factory = new NFTFractionalizationFactory(nftName, nftSymbol);
 
         console.log("NFTFractionalizationFactory deployed at:", address(factory));
         console.log("NFT contract deployed at:", address(factory.nftContract()));
