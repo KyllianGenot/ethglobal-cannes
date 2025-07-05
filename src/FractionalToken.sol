@@ -63,7 +63,7 @@ contract FractionalToken is ERC20, ReentrancyGuard, Ownable {
         require(_recipient != address(0), "Invalid recipient");
 
         uint256 totalCost = _shares * sharePrice;
-        require(usdfToken.transferFrom(msg.sender, address(this), totalCost), "USDf transfer failed");
+        require(usdfToken.transferFrom(_recipient, address(this), totalCost), "USDf transfer failed");
 
         _transfer(address(this), _recipient, adjustedShares);
         sharesSold += adjustedShares;
@@ -124,7 +124,10 @@ contract FractionalToken is ERC20, ReentrancyGuard, Ownable {
     function withdraw() external onlyOwner {
         uint256 balance = usdfToken.balanceOf(address(this));
         require(balance > 0, "No USDf to withdraw");
-        require(usdfToken.transfer(owner(), balance), "USDf transfer failed");
+
+        // Get the factory owner instead of sending to factory
+        address factoryOwner = Ownable(owner()).owner();
+        require(usdfToken.transfer(factoryOwner, balance), "USDf transfer failed");
     }
 
     function getUserInfo(address user)

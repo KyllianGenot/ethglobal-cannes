@@ -83,4 +83,10 @@ contract NFTFractionalizationFactory is Ownable, ReentrancyGuard {
         require(fractionalTokenAddress != address(0), "NFT not fractionalized");
         FractionalToken(fractionalTokenAddress).withdraw();
     }
+
+    function withdrawUSDf() external onlyOwner {
+        uint256 balance = usdfToken.balanceOf(address(this));
+        require(balance > 0, "No USDf to withdraw");
+        require(usdfToken.transfer(owner(), balance), "USDf transfer failed");
+    }
 }
