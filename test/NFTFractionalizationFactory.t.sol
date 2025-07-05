@@ -8,15 +8,15 @@ import "../src/FractionalToken.sol";
 
 contract NFTFractionalizationFactoryTest is Test {
     NFTFractionalizationFactory factory;
-    
+
     address constant USDF_ADDRESS = 0xd7d43ab7b365f0d0789aE83F4385fA710FfdC98F;
-    
+
     address owner = address(0x1);
     address user1 = address(0x2);
     address user2 = address(0x3);
 
     uint256 constant TOTAL_SHARES = 1000;
-    uint256 constant TOTAL_PRICE = 1000 * 10**6; // 1000 USDf (6 decimals)
+    uint256 constant TOTAL_PRICE = 1000 * 10 ** 6; // 1000 USDf (6 decimals)
     uint256 constant SHARE_PRICE = TOTAL_PRICE / TOTAL_SHARES; // 1 USDf per share
 
     function setUp() public {
@@ -32,17 +32,15 @@ contract NFTFractionalizationFactoryTest is Test {
             abi.encodeWithSelector(bytes4(keccak256("transferFrom(address,address,uint256)"))),
             abi.encode(true)
         );
-        
+
         vm.mockCall(
-            USDF_ADDRESS,
-            abi.encodeWithSelector(bytes4(keccak256("transfer(address,uint256)"))),
-            abi.encode(true)
+            USDF_ADDRESS, abi.encodeWithSelector(bytes4(keccak256("transfer(address,uint256)"))), abi.encode(true)
         );
-        
+
         vm.mockCall(
             USDF_ADDRESS,
             abi.encodeWithSelector(bytes4(keccak256("balanceOf(address)"))),
-            abi.encode(10000 * 10**6) // Mock sufficient balance for all test scenarios
+            abi.encode(10000 * 10 ** 6) // Mock sufficient balance for all test scenarios
         );
     }
 
@@ -62,15 +60,15 @@ contract NFTFractionalizationFactoryTest is Test {
         // Verify fractional token deployment and proper initialization
         FractionalToken fracToken = FractionalToken(fractionalToken);
         assertEq(fracToken.nftTokenId(), tokenId);
-        assertEq(fracToken.totalShares(), TOTAL_SHARES * 10**6); // Adjusted for decimals
+        assertEq(fracToken.totalShares(), TOTAL_SHARES * 10 ** 6); // Adjusted for decimals
         assertEq(fracToken.sharePrice(), SHARE_PRICE);
         assertEq(fracToken.name(), "Fractional Art #1");
         assertEq(fracToken.symbol(), "FART1");
         assertTrue(fracToken.initialized());
 
         // Verify initial share distribution - all shares should be held by the contract
-        assertEq(fracToken.balanceOf(fractionalToken), TOTAL_SHARES * 10**6);
-        assertEq(fracToken.getAvailableShares(), TOTAL_SHARES * 10**6);
+        assertEq(fracToken.balanceOf(fractionalToken), TOTAL_SHARES * 10 ** 6);
+        assertEq(fracToken.getAvailableShares(), TOTAL_SHARES * 10 ** 6);
     }
 
     function testOnlyOwnerCanCreateNFT() public {
@@ -100,16 +98,16 @@ contract NFTFractionalizationFactoryTest is Test {
         vm.stopPrank();
 
         // Verify share purchase affects user balance and contract state
-        assertEq(fracToken.balanceOf(user1), sharesToBuy * 10**6); // Adjusted for decimals
-        assertEq(fracToken.sharesSold(), sharesToBuy * 10**6);
-        assertEq(fracToken.getAvailableShares(), (TOTAL_SHARES - sharesToBuy) * 10**6);
+        assertEq(fracToken.balanceOf(user1), sharesToBuy * 10 ** 6); // Adjusted for decimals
+        assertEq(fracToken.sharesSold(), sharesToBuy * 10 ** 6);
+        assertEq(fracToken.getAvailableShares(), (TOTAL_SHARES - sharesToBuy) * 10 ** 6);
 
         // Verify user information tracking
         (uint256 shareBalance, uint256 sharesPurchased, uint256 shareValue) = fracToken.getUserInfo(user1);
-        assertEq(shareBalance, sharesToBuy * 10**6);
-        assertEq(sharesPurchased, sharesToBuy * 10**6);
+        assertEq(shareBalance, sharesToBuy * 10 ** 6);
+        assertEq(sharesPurchased, sharesToBuy * 10 ** 6);
         // Share value calculation includes decimals in balance
-        assertEq(shareValue, sharesToBuy * 10**6 * SHARE_PRICE);
+        assertEq(shareValue, sharesToBuy * 10 ** 6 * SHARE_PRICE);
     }
 
     function testPurchaseSharesViaFactory() public {
@@ -129,7 +127,7 @@ contract NFTFractionalizationFactoryTest is Test {
 
         // Verify factory purchase delegation works correctly
         FractionalToken fracToken = FractionalToken(factory.getFractionalToken(tokenId));
-        assertEq(fracToken.balanceOf(user1), sharesToBuy * 10**6);
+        assertEq(fracToken.balanceOf(user1), sharesToBuy * 10 ** 6);
     }
 
     function testSellShares() public {
@@ -152,8 +150,8 @@ contract NFTFractionalizationFactoryTest is Test {
         vm.stopPrank();
 
         // Verify share sale reduces user balance and updates contract state
-        assertEq(fracToken.balanceOf(user1), 50 * 10**6);
-        assertEq(fracToken.sharesSold(), 50 * 10**6);
+        assertEq(fracToken.balanceOf(user1), 50 * 10 ** 6);
+        assertEq(fracToken.sharesSold(), 50 * 10 ** 6);
     }
 
     function testUpdateSharePrice() public {
@@ -163,13 +161,13 @@ contract NFTFractionalizationFactoryTest is Test {
         );
 
         // Test: Owner updates total price which affects individual share price
-        uint256 newTotalPrice = 2000 * 10**6; // 2000 USDf
+        uint256 newTotalPrice = 2000 * 10 ** 6; // 2000 USDf
         factory.updateTotalPrice(tokenId, newTotalPrice);
         vm.stopPrank();
 
         // Verify price update recalculates share price correctly
         // Share price = total price / (total shares with decimals)
-        uint256 expectedSharePrice = newTotalPrice / (TOTAL_SHARES * 10**6);
+        uint256 expectedSharePrice = newTotalPrice / (TOTAL_SHARES * 10 ** 6);
         uint256 actualSharePrice = factory.getSharePrice(tokenId);
         assertEq(actualSharePrice, expectedSharePrice);
     }
@@ -230,11 +228,11 @@ contract NFTFractionalizationFactoryTest is Test {
         // Verify all contract information is accurate
         assertEq(nftContract, address(factory.nftContract()));
         assertEq(nftTokenId, tokenId);
-        assertEq(totalShares, TOTAL_SHARES * 10**6);
+        assertEq(totalShares, TOTAL_SHARES * 10 ** 6);
         assertEq(sharesSold, 0);
         assertEq(sharePrice, SHARE_PRICE);
         assertTrue(tradingEnabled);
-        assertEq(availableShares, TOTAL_SHARES * 10**6);
+        assertEq(availableShares, TOTAL_SHARES * 10 ** 6);
     }
 
     function testWithdrawFromFractionalToken() public {
@@ -275,4 +273,3 @@ contract NFTFractionalizationFactoryTest is Test {
         assertEq(nftContract.ownerOf(tokenId), owner);
     }
 }
-
