@@ -31,11 +31,18 @@ contract FractionalToken is ERC20, ReentrancyGuard, Ownable {
         string memory _symbol
     ) ERC20(_name, _symbol) Ownable(msg.sender) {
         nftContract = _nftContract;
-        totalShares = _totalShares;
+        totalShares = _totalShares * (10 ** decimals());
         sharePrice = _sharePrice;
 
         // Mint all shares to this contract initially
-        _mint(address(this), _totalShares);
+        _mint(address(this), totalShares);
+    }
+
+    /**
+     * @dev Override decimals to use 6 instead of default 18
+     */
+    function decimals() public pure override returns (uint8) {
+        return 6;
     }
 
     /**
@@ -72,20 +79,23 @@ contract FractionalToken is ERC20, ReentrancyGuard, Ownable {
         require(initialized, "Contract not initialized");
         require(tradingEnabled, "Trading is disabled");
         require(_shares > 0, "Must purchase at least 1 share");
-        require(_shares <= balanceOf(address(this)), "Not enough shares available");
+
+        // Adjust shares with decimals
+        uint256 adjustedShares = _shares * (10 ** decimals());
+        require(adjustedShares <= balanceOf(address(this)), "Not enough shares available");
         require(_recipient != address(0), "Invalid recipient");
 
         uint256 totalCost = _shares * sharePrice;
         require(msg.value == totalCost, "Incorrect FLOW amount");
 
         // Transfer shares to recipient
-        _transfer(address(this), _recipient, _shares);
+        _transfer(address(this), _recipient, adjustedShares);
 
         // Update tracking
-        sharesSold += _shares;
-        sharesPurchased[_recipient] += _shares;
+        sharesSold += adjustedShares;
+        sharesPurchased[_recipient] += adjustedShares;
 
-        emit SharesPurchased(_recipient, _shares, totalCost);
+        emit SharesPurchased(_recipient, adjustedShares, totalCost);
     }
 
     /**
@@ -96,22 +106,25 @@ contract FractionalToken is ERC20, ReentrancyGuard, Ownable {
         require(initialized, "Contract not initialized");
         require(tradingEnabled, "Trading is disabled");
         require(_shares > 0, "Must sell at least 1 share");
-        require(balanceOf(msg.sender) >= _shares, "Insufficient shares");
+
+        // Adjust shares with decimals
+        uint256 adjustedShares = _shares * (10 ** decimals());
+        require(balanceOf(msg.sender) >= adjustedShares, "Insufficient shares");
 
         uint256 totalValue = _shares * sharePrice;
         require(address(this).balance >= totalValue, "Contract has insufficient FLOW");
 
         // Transfer shares back to contract
-        _transfer(msg.sender, address(this), _shares);
+        _transfer(msg.sender, address(this), adjustedShares);
 
         // Send ETH to seller
         payable(msg.sender).transfer(totalValue);
 
         // Update tracking
-        sharesSold -= _shares;
-        sharesPurchased[msg.sender] -= _shares;
+        sharesSold -= adjustedShares;
+        sharesPurchased[msg.sender] -= adjustedShares;
 
-        emit SharesSold(msg.sender, _shares, totalValue);
+        emit SharesSold(msg.sender, adjustedShares, totalValue);
     }
 
     /**
