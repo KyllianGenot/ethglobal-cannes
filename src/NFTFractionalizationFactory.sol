@@ -33,28 +33,32 @@ contract NFTFractionalizationFactory is Ownable, ReentrancyGuard {
     /**
      * @dev Create a new NFT and automatically fractionalize it
      * @param _totalShares Total number of shares to create
-     * @param _sharePrice Price per share in wei
+     * @param _totalPrice Total price of the NFT in wei
      * @param _name Name for the fractional token
      * @param _symbol Symbol for the fractional token
      */
     function createFractionalizedNFT(
         uint256 _totalShares,
-        uint256 _sharePrice,
+        uint256 _totalPrice,
         string memory _name,
         string memory _symbol,
         string memory _uri
     ) external onlyOwner nonReentrant returns (uint256 tokenId, address fractionalToken) {
         require(_totalShares > 0, "Total shares must be greater than 0");
-        require(_sharePrice > 0, "Share price must be greater than 0");
+        require(_totalPrice > 0, "Total price must be greater than 0");
         require(bytes(_uri).length > 0, "Token URI cannot be empty");
+
+        // Calculate price per share
+        uint256 sharePrice = _totalPrice / _totalShares;
+        require(sharePrice > 0, "Share price too small");
 
         // Deploy fractional token contract first
         FractionalToken newFractionalToken =
-            new FractionalToken(address(nftContract), _totalShares, _sharePrice, _name, _symbol);
+            new FractionalToken(address(nftContract), _totalShares, sharePrice, _name, _symbol);
 
         fractionalToken = address(newFractionalToken);
 
-        // Mint NFT to the factory owner (deployer) instead of the fractional token
+        // Mint NFT to the factory owner (deployer)
         tokenId = nftContract.mint(owner(), fractionalToken, _uri);
 
         // Initialize the fractional token with the correct token ID
@@ -64,7 +68,7 @@ contract NFTFractionalizationFactory is Ownable, ReentrancyGuard {
         fractionalTokens[tokenId] = fractionalToken;
         allNFTs.push(tokenId);
 
-        emit NFTCreatedAndFractionalized(tokenId, fractionalToken, _totalShares, _sharePrice, _name, _symbol, _uri);
+        emit NFTCreatedAndFractionalized(tokenId, fractionalToken, _totalShares, sharePrice, _name, _symbol, _uri);
 
         return (tokenId, fractionalToken);
     }
@@ -161,14 +165,46 @@ contract NFTFractionalizationFactory is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev Update share price for a specific NFT (only owner)
+     * @dev Get the share price for a specific NFT
+     * @param _tokenId The NFT token ID
+     * @return sharePrice The price per share in wei
      */
-    function updateSharePrice(uint256 _tokenId, uint256 _newPrice) external onlyOwner {
+    function getSharePrice(uint256 _tokenId) external view returns (uint256 sharePrice) {
         address fractionalTokenAddress = fractionalTokens[_tokenId];
         require(fractionalTokenAddress != address(0), "NFT not fractionalized");
 
         FractionalToken fractionalToken = FractionalToken(fractionalTokenAddress);
-        fractionalToken.updateSharePrice(_newPrice);
+        (,,,, sharePrice,,) = fractionalToken.getContractInfo();
+    }
+
+    /**
+     * @dev Get NFT metadata (URI contains description, image, etc.)
+     * @param _tokenId The NFT token ID
+     * @return uri The IPFS URI containing NFT metadata
+     * @return owner The current owner of the NFT
+     */
+    function getNFTMetadata(uint256 _tokenId) external view returns (string memory uri, address owner) {
+        require(_tokenId > 0 && _tokenId < nftContract.totalSupply() + 1, "Invalid token ID");
+
+        uri = nftContract.tokenURI(_tokenId);
+        owner = nftContract.ownerOf(_tokenId);
+    }
+
+    /**
+     * @dev Update total price for a specific NFT (only owner)
+     */
+    function updateTotalPrice(uint256 _tokenId, uint256 _newTotalPrice) external onlyOwner {
+        address fractionalTokenAddress = fractionalTokens[_tokenId];
+        require(fractionalTokenAddress != address(0), "NFT not fractionalized");
+
+        FractionalToken fractionalToken = FractionalToken(fractionalTokenAddress);
+
+        // Get total shares to calculate new share price
+        (,, uint256 totalShares,,,,) = fractionalToken.getContractInfo();
+        uint256 newSharePrice = _newTotalPrice / totalShares;
+        require(newSharePrice > 0, "Share price too small");
+
+        fractionalToken.updateSharePrice(newSharePrice);
     }
 
     /**

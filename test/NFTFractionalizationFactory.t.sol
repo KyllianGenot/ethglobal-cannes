@@ -13,7 +13,8 @@ contract NFTFractionalizationFactoryTest is Test {
     address user2 = address(0x3);
 
     uint256 constant TOTAL_SHARES = 1000;
-    uint256 constant SHARE_PRICE = 0.001 ether;
+    uint256 constant TOTAL_PRICE = 1 ether; // 1 ETH total price
+    uint256 constant SHARE_PRICE = TOTAL_PRICE / TOTAL_SHARES; // 0.001 ETH per share
 
     function setUp() public {
         vm.startPrank(owner);
@@ -29,7 +30,7 @@ contract NFTFractionalizationFactoryTest is Test {
         vm.startPrank(owner);
 
         (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample1"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample1"
         );
 
         vm.stopPrank();
@@ -56,7 +57,7 @@ contract NFTFractionalizationFactoryTest is Test {
         vm.startPrank(user1);
 
         vm.expectRevert();
-        factory.createFractionalizedNFT(TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample2");
+        factory.createFractionalizedNFT(TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample2");
 
         vm.stopPrank();
     }
@@ -65,7 +66,7 @@ contract NFTFractionalizationFactoryTest is Test {
         // Owner creates NFT
         vm.startPrank(owner);
         (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample3"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample3"
         );
         vm.stopPrank();
 
@@ -93,7 +94,7 @@ contract NFTFractionalizationFactoryTest is Test {
     function testPurchaseSharesInsufficientETH() public {
         vm.startPrank(owner);
         (uint256 tokenId,) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample4"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample4"
         );
         vm.stopPrank();
 
@@ -107,7 +108,7 @@ contract NFTFractionalizationFactoryTest is Test {
         // Owner creates NFT
         vm.startPrank(owner);
         (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample5"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample5"
         );
         vm.stopPrank();
 
@@ -136,12 +137,14 @@ contract NFTFractionalizationFactoryTest is Test {
 
         // Create first NFT
         (uint256 tokenId1,) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample6"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample6"
         );
 
-        // Create second NFT
+        // Create second NFT with different parameters
+        uint256 shares2 = 500;
+        uint256 totalPrice2 = 1 ether;
         (uint256 tokenId2,) =
-            factory.createFractionalizedNFT(500, 0.002 ether, "Fractional Art #2", "FART2", "ipfs://QmExample7");
+            factory.createFractionalizedNFT(shares2, totalPrice2, "Fractional Art #2", "FART2", "ipfs://QmExample7");
 
         vm.stopPrank();
 
@@ -161,30 +164,30 @@ contract NFTFractionalizationFactoryTest is Test {
 
         assertEq(totalShares1, TOTAL_SHARES);
         assertEq(sharePrice1, SHARE_PRICE);
-        assertEq(totalShares2, 500);
-        assertEq(sharePrice2, 0.002 ether);
+        assertEq(totalShares2, shares2);
+        assertEq(sharePrice2, totalPrice2 / shares2);
     }
 
-    function testUpdateSharePrice() public {
+    function testUpdateTotalPrice() public {
         vm.startPrank(owner);
         (uint256 tokenId,) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample8"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample8"
         );
 
-        // Update share price
-        uint256 newPrice = 0.002 ether;
-        factory.updateSharePrice(tokenId, newPrice);
+        // Update total price
+        uint256 newTotalPrice = 2 ether; // 2 ETH total for 1000 shares = 0.002 ETH per share
+        factory.updateTotalPrice(tokenId, newTotalPrice);
         vm.stopPrank();
 
         // Verify price update
         (,,,, uint256 sharePrice,,) = factory.getNFTInfo(tokenId);
-        assertEq(sharePrice, newPrice);
+        assertEq(sharePrice, newTotalPrice / TOTAL_SHARES);
     }
 
     function testSetTradingEnabled() public {
         vm.startPrank(owner);
         (uint256 tokenId,) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample9"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample9"
         );
 
         // Disable trading
@@ -205,7 +208,7 @@ contract NFTFractionalizationFactoryTest is Test {
     function testGetNFTInfo() public {
         vm.startPrank(owner);
         (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample10"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample10"
         );
         vm.stopPrank();
 
@@ -231,7 +234,7 @@ contract NFTFractionalizationFactoryTest is Test {
     function testGetFractionalTokenContract() public {
         vm.startPrank(owner);
         (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, SHARE_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample11"
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample11"
         );
         vm.stopPrank();
 
