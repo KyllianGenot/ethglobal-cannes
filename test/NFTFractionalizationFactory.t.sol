@@ -86,7 +86,7 @@ contract NFTFractionalizationFactoryTest is Test {
     function testPurchaseShares() public {
         // Setup: Owner creates fractionalized NFT
         vm.startPrank(owner);
-        (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
+        (uint256 tokenId,) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample3"
         );
         vm.stopPrank();
@@ -95,7 +95,7 @@ contract NFTFractionalizationFactoryTest is Test {
         uint256 sharesToBuy = 100;
 
         vm.startPrank(user1);
-        FractionalToken fracToken = FractionalToken(fractionalToken);
+        FractionalToken fracToken = FractionalToken(factory.getFractionalToken(tokenId));
         fracToken.purchaseShares(sharesToBuy);
         vm.stopPrank();
 
@@ -115,7 +115,7 @@ contract NFTFractionalizationFactoryTest is Test {
     function testPurchaseSharesViaFactory() public {
         // Setup: Owner creates fractionalized NFT
         vm.startPrank(owner);
-        (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
+        (uint256 tokenId,) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample4"
         );
         vm.stopPrank();
@@ -128,14 +128,14 @@ contract NFTFractionalizationFactoryTest is Test {
         vm.stopPrank();
 
         // Verify factory purchase delegation works correctly
-        FractionalToken fracToken = FractionalToken(fractionalToken);
+        FractionalToken fracToken = FractionalToken(factory.getFractionalToken(tokenId));
         assertEq(fracToken.balanceOf(user1), sharesToBuy * 10**6);
     }
 
     function testSellShares() public {
         // Setup: Owner creates fractionalized NFT
         vm.startPrank(owner);
-        (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
+        (uint256 tokenId,) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample5"
         );
         vm.stopPrank();
@@ -144,7 +144,7 @@ contract NFTFractionalizationFactoryTest is Test {
         uint256 sharesToBuy = 100;
 
         vm.startPrank(user1);
-        FractionalToken fracToken = FractionalToken(fractionalToken);
+        FractionalToken fracToken = FractionalToken(factory.getFractionalToken(tokenId));
         fracToken.purchaseShares(sharesToBuy);
 
         // Test: User sells portion of their shares
