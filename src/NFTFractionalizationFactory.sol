@@ -26,6 +26,10 @@ contract NFTFractionalizationFactory is Ownable, ReentrancyGuard {
         string uri
     );
 
+    // Allow contract to receive FLOW
+    receive() external payable {}
+    fallback() external payable {}
+
     constructor(string memory nftName, string memory nftSymbol) Ownable(msg.sender) {
         nftContract = new FractionalizedNFT(nftName, nftSymbol);
     }
@@ -219,13 +223,20 @@ contract NFTFractionalizationFactory is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev Withdraw accumulated ETH from a fractional token contract (only owner)
+     * @dev Withdraw accumulated FLOW from a fractional token contract (only owner)
      */
     function withdrawFromFractionalToken(uint256 _tokenId) external onlyOwner {
         address fractionalTokenAddress = fractionalTokens[_tokenId];
         require(fractionalTokenAddress != address(0), "NFT not fractionalized");
 
         FractionalToken fractionalToken = FractionalToken(fractionalTokenAddress);
+
+        // First withdraw to this contract
         fractionalToken.withdraw();
+
+        // Then forward the funds to the owner
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No FLOW to withdraw");
+        payable(owner()).transfer(balance);
     }
 }

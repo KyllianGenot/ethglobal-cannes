@@ -99,7 +99,7 @@ contract NFTFractionalizationFactoryTest is Test {
         vm.stopPrank();
 
         vm.startPrank(user1);
-        vm.expectRevert("Incorrect ETH amount");
+        vm.expectRevert("Incorrect FLOW amount");
         factory.purchaseShares{value: 0.0005 ether}(tokenId, 100);
         vm.stopPrank();
     }

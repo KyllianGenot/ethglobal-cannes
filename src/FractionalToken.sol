@@ -76,7 +76,7 @@ contract FractionalToken is ERC20, ReentrancyGuard, Ownable {
         require(_recipient != address(0), "Invalid recipient");
 
         uint256 totalCost = _shares * sharePrice;
-        require(msg.value == totalCost, "Incorrect ETH amount");
+        require(msg.value == totalCost, "Incorrect FLOW amount");
 
         // Transfer shares to recipient
         _transfer(address(this), _recipient, _shares);
@@ -99,7 +99,7 @@ contract FractionalToken is ERC20, ReentrancyGuard, Ownable {
         require(balanceOf(msg.sender) >= _shares, "Insufficient shares");
 
         uint256 totalValue = _shares * sharePrice;
-        require(address(this).balance >= totalValue, "Contract has insufficient ETH");
+        require(address(this).balance >= totalValue, "Contract has insufficient FLOW");
 
         // Transfer shares back to contract
         _transfer(msg.sender, address(this), _shares);
@@ -160,11 +160,11 @@ contract FractionalToken is ERC20, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Withdraw accumulated ETH (only owner)
+     * @dev Withdraw accumulated FLOW (only owner)
      */
     function withdraw() external onlyOwner {
         uint256 balance = address(this).balance;
-        require(balance > 0, "No ETH to withdraw");
+        require(balance > 0, "No FLOW to withdraw");
         payable(owner()).transfer(balance);
     }
 
