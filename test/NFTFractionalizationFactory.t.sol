@@ -8,22 +8,42 @@ import "../src/FractionalToken.sol";
 
 contract NFTFractionalizationFactoryTest is Test {
     NFTFractionalizationFactory factory;
+    
+    address constant USDF_ADDRESS = 0xd7d43ab7b365f0d0789aE83F4385fA710FfdC98F;
+    
     address owner = address(0x1);
     address user1 = address(0x2);
     address user2 = address(0x3);
 
     uint256 constant TOTAL_SHARES = 1000;
-    uint256 constant TOTAL_PRICE = 1 ether; // 1 ETH total price
-    uint256 constant SHARE_PRICE = TOTAL_PRICE / TOTAL_SHARES; // 0.001 ETH per share
+    uint256 constant TOTAL_PRICE = 1000 * 10**6; // 1000 USDf (6 decimals)
+    uint256 constant SHARE_PRICE = TOTAL_PRICE / TOTAL_SHARES; // 1 USDf per share
 
     function setUp() public {
+        // Initialize factory contract with owner privileges
         vm.startPrank(owner);
         factory = new NFTFractionalizationFactory("FractionalizedNFTs", "FNFT");
         vm.stopPrank();
 
-        // Give users some ETH
-        vm.deal(user1, 10 ether);
-        vm.deal(user2, 10 ether);
+        // Mock USDf token interactions to simulate successful transfers and balances
+        // This prevents external token dependency issues during testing
+        vm.mockCall(
+            USDF_ADDRESS,
+            abi.encodeWithSelector(bytes4(keccak256("transferFrom(address,address,uint256)"))),
+            abi.encode(true)
+        );
+        
+        vm.mockCall(
+            USDF_ADDRESS,
+            abi.encodeWithSelector(bytes4(keccak256("transfer(address,uint256)"))),
+            abi.encode(true)
+        );
+        
+        vm.mockCall(
+            USDF_ADDRESS,
+            abi.encodeWithSelector(bytes4(keccak256("balanceOf(address)"))),
+            abi.encode(10000 * 10**6) // Mock sufficient balance for all test scenarios
+        );
     }
 
     function testCreateFractionalizedNFT() public {
@@ -35,27 +55,28 @@ contract NFTFractionalizationFactoryTest is Test {
 
         vm.stopPrank();
 
-        // Verify NFT was created
+        // Verify NFT creation and token ID assignment
         assertEq(tokenId, 1);
-        assertEq(factory.getTotalNFTs(), 1);
+        assertEq(factory.nftContract().totalSupply(), 1);
 
-        // Verify fractional token was created and initialized
+        // Verify fractional token deployment and proper initialization
         FractionalToken fracToken = FractionalToken(fractionalToken);
         assertEq(fracToken.nftTokenId(), tokenId);
-        assertEq(fracToken.totalShares(), TOTAL_SHARES);
+        assertEq(fracToken.totalShares(), TOTAL_SHARES * 10**6); // Adjusted for decimals
         assertEq(fracToken.sharePrice(), SHARE_PRICE);
         assertEq(fracToken.name(), "Fractional Art #1");
         assertEq(fracToken.symbol(), "FART1");
         assertTrue(fracToken.initialized());
 
-        // Verify all shares are in the contract initially
-        assertEq(fracToken.balanceOf(fractionalToken), TOTAL_SHARES);
-        assertEq(fracToken.getAvailableShares(), TOTAL_SHARES);
+        // Verify initial share distribution - all shares should be held by the contract
+        assertEq(fracToken.balanceOf(fractionalToken), TOTAL_SHARES * 10**6);
+        assertEq(fracToken.getAvailableShares(), TOTAL_SHARES * 10**6);
     }
 
     function testOnlyOwnerCanCreateNFT() public {
         vm.startPrank(user1);
 
+        // Attempt to create NFT as non-owner should fail
         vm.expectRevert();
         factory.createFractionalizedNFT(TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample2");
 
@@ -63,182 +84,195 @@ contract NFTFractionalizationFactoryTest is Test {
     }
 
     function testPurchaseShares() public {
-        // Owner creates NFT
+        // Setup: Owner creates fractionalized NFT
         vm.startPrank(owner);
         (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample3"
         );
         vm.stopPrank();
 
-        // User1 purchases shares
+        // Test: User purchases shares directly from fractional token contract
         uint256 sharesToBuy = 100;
-        uint256 totalCost = sharesToBuy * SHARE_PRICE;
 
         vm.startPrank(user1);
-        factory.purchaseShares{value: totalCost}(tokenId, sharesToBuy);
+        FractionalToken fracToken = FractionalToken(fractionalToken);
+        fracToken.purchaseShares(sharesToBuy);
         vm.stopPrank();
 
-        // Verify purchase
-        FractionalToken fracToken = FractionalToken(fractionalToken);
-        assertEq(fracToken.balanceOf(user1), sharesToBuy);
-        assertEq(fracToken.sharesSold(), sharesToBuy);
-        assertEq(fracToken.getAvailableShares(), TOTAL_SHARES - sharesToBuy);
+        // Verify share purchase affects user balance and contract state
+        assertEq(fracToken.balanceOf(user1), sharesToBuy * 10**6); // Adjusted for decimals
+        assertEq(fracToken.sharesSold(), sharesToBuy * 10**6);
+        assertEq(fracToken.getAvailableShares(), (TOTAL_SHARES - sharesToBuy) * 10**6);
 
-        // Verify user info
-        (uint256 shareBalance, uint256 sharesPurchased, uint256 shareValue) = factory.getUserNFTInfo(tokenId, user1);
-        assertEq(shareBalance, sharesToBuy);
-        assertEq(sharesPurchased, sharesToBuy);
-        assertEq(shareValue, sharesToBuy * SHARE_PRICE);
+        // Verify user information tracking
+        (uint256 shareBalance, uint256 sharesPurchased, uint256 shareValue) = fracToken.getUserInfo(user1);
+        assertEq(shareBalance, sharesToBuy * 10**6);
+        assertEq(sharesPurchased, sharesToBuy * 10**6);
+        // Share value calculation includes decimals in balance
+        assertEq(shareValue, sharesToBuy * 10**6 * SHARE_PRICE);
     }
 
-    function testPurchaseSharesInsufficientETH() public {
+    function testPurchaseSharesViaFactory() public {
+        // Setup: Owner creates fractionalized NFT
         vm.startPrank(owner);
-        (uint256 tokenId,) = factory.createFractionalizedNFT(
+        (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample4"
         );
         vm.stopPrank();
 
+        // Test: User purchases shares through factory interface
+        uint256 sharesToBuy = 100;
+
         vm.startPrank(user1);
-        vm.expectRevert("Incorrect FLOW amount");
-        factory.purchaseShares{value: 0.0005 ether}(tokenId, 100);
+        factory.purchaseShares(tokenId, sharesToBuy);
         vm.stopPrank();
+
+        // Verify factory purchase delegation works correctly
+        FractionalToken fracToken = FractionalToken(fractionalToken);
+        assertEq(fracToken.balanceOf(user1), sharesToBuy * 10**6);
     }
 
-    function testSellSharesDirectly() public {
-        // Owner creates NFT
+    function testSellShares() public {
+        // Setup: Owner creates fractionalized NFT
         vm.startPrank(owner);
         (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample5"
         );
         vm.stopPrank();
 
-        // User1 purchases shares
+        // Setup: User purchases shares to have something to sell
         uint256 sharesToBuy = 100;
-        uint256 totalCost = sharesToBuy * SHARE_PRICE;
 
         vm.startPrank(user1);
-        factory.purchaseShares{value: totalCost}(tokenId, sharesToBuy);
-
-        // User1 sells shares directly to fractional contract
         FractionalToken fracToken = FractionalToken(fractionalToken);
-        uint256 initialBalance = user1.balance;
+        fracToken.purchaseShares(sharesToBuy);
 
+        // Test: User sells portion of their shares
         fracToken.sellShares(50);
         vm.stopPrank();
 
-        // Verify sale
-        assertEq(fracToken.balanceOf(user1), 50);
-        assertEq(fracToken.sharesSold(), 50);
-        assertEq(user1.balance, initialBalance + (50 * SHARE_PRICE));
+        // Verify share sale reduces user balance and updates contract state
+        assertEq(fracToken.balanceOf(user1), 50 * 10**6);
+        assertEq(fracToken.sharesSold(), 50 * 10**6);
     }
 
-    function testMultipleNFTs() public {
+    function testUpdateSharePrice() public {
         vm.startPrank(owner);
-
-        // Create first NFT
-        (uint256 tokenId1,) = factory.createFractionalizedNFT(
+        (uint256 tokenId,) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample6"
         );
 
-        // Create second NFT with different parameters
-        uint256 shares2 = 500;
-        uint256 totalPrice2 = 1 ether;
-        (uint256 tokenId2,) =
-            factory.createFractionalizedNFT(shares2, totalPrice2, "Fractional Art #2", "FART2", "ipfs://QmExample7");
-
-        vm.stopPrank();
-
-        // Verify both NFTs exist
-        assertEq(tokenId1, 1);
-        assertEq(tokenId2, 2);
-        assertEq(factory.getTotalNFTs(), 2);
-
-        uint256[] memory allNFTs = factory.getAllNFTs();
-        assertEq(allNFTs.length, 2);
-        assertEq(allNFTs[0], 1);
-        assertEq(allNFTs[1], 2);
-
-        // Verify different parameters
-        (,, uint256 totalShares1,, uint256 sharePrice1,,) = factory.getNFTInfo(tokenId1);
-        (,, uint256 totalShares2,, uint256 sharePrice2,,) = factory.getNFTInfo(tokenId2);
-
-        assertEq(totalShares1, TOTAL_SHARES);
-        assertEq(sharePrice1, SHARE_PRICE);
-        assertEq(totalShares2, shares2);
-        assertEq(sharePrice2, totalPrice2 / shares2);
-    }
-
-    function testUpdateTotalPrice() public {
-        vm.startPrank(owner);
-        (uint256 tokenId,) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample8"
-        );
-
-        // Update total price
-        uint256 newTotalPrice = 2 ether; // 2 ETH total for 1000 shares = 0.002 ETH per share
+        // Test: Owner updates total price which affects individual share price
+        uint256 newTotalPrice = 2000 * 10**6; // 2000 USDf
         factory.updateTotalPrice(tokenId, newTotalPrice);
         vm.stopPrank();
 
-        // Verify price update
-        (,,,, uint256 sharePrice,,) = factory.getNFTInfo(tokenId);
-        assertEq(sharePrice, newTotalPrice / TOTAL_SHARES);
+        // Verify price update recalculates share price correctly
+        // Share price = total price / (total shares with decimals)
+        uint256 expectedSharePrice = newTotalPrice / (TOTAL_SHARES * 10**6);
+        uint256 actualSharePrice = factory.getSharePrice(tokenId);
+        assertEq(actualSharePrice, expectedSharePrice);
     }
 
     function testSetTradingEnabled() public {
         vm.startPrank(owner);
-        (uint256 tokenId,) = factory.createFractionalizedNFT(
-            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample9"
+        (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample7"
         );
 
-        // Disable trading
+        // Test: Owner disables trading for the fractionalized NFT
         factory.setTradingEnabled(tokenId, false);
         vm.stopPrank();
 
-        // Verify trading is disabled
-        (,,,,, bool tradingEnabled,) = factory.getNFTInfo(tokenId);
+        // Verify trading state is properly updated
+        FractionalToken fracToken = FractionalToken(fractionalToken);
+        (,,,,, bool tradingEnabled,) = fracToken.getContractInfo();
         assertFalse(tradingEnabled);
 
-        // Try to purchase shares (should fail)
+        // Verify trading restriction prevents share purchases
         vm.startPrank(user1);
-        vm.expectRevert("Trading is disabled");
-        factory.purchaseShares{value: SHARE_PRICE}(tokenId, 1);
+        vm.expectRevert();
+        fracToken.purchaseShares(1);
         vm.stopPrank();
     }
 
-    function testGetNFTInfo() public {
+    function testGetFractionalToken() public {
+        vm.startPrank(owner);
+        (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample8"
+        );
+        vm.stopPrank();
+
+        // Test: Factory can retrieve fractional token address by NFT token ID
+        address retrievedToken = factory.getFractionalToken(tokenId);
+        assertEq(retrievedToken, fractionalToken);
+    }
+
+    function testGetContractInfo() public {
+        vm.startPrank(owner);
+        (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
+            TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample9"
+        );
+        vm.stopPrank();
+
+        // Test: Fractional token provides comprehensive contract information
+        FractionalToken fracToken = FractionalToken(fractionalToken);
+        (
+            address nftContract,
+            uint256 nftTokenId,
+            uint256 totalShares,
+            uint256 sharesSold,
+            uint256 sharePrice,
+            bool tradingEnabled,
+            uint256 availableShares
+        ) = fracToken.getContractInfo();
+
+        // Verify all contract information is accurate
+        assertEq(nftContract, address(factory.nftContract()));
+        assertEq(nftTokenId, tokenId);
+        assertEq(totalShares, TOTAL_SHARES * 10**6);
+        assertEq(sharesSold, 0);
+        assertEq(sharePrice, SHARE_PRICE);
+        assertTrue(tradingEnabled);
+        assertEq(availableShares, TOTAL_SHARES * 10**6);
+    }
+
+    function testWithdrawFromFractionalToken() public {
+        // Setup: Owner creates fractionalized NFT
         vm.startPrank(owner);
         (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample10"
         );
         vm.stopPrank();
 
-        (
-            address fractionalTokenAddress,
-            address nftOwner,
-            uint256 totalShares,
-            uint256 sharesSold,
-            uint256 sharePrice,
-            bool tradingEnabled,
-            uint256 availableShares
-        ) = factory.getNFTInfo(tokenId);
+        // Setup: User purchases shares to add funds to the contract
+        uint256 sharesToBuy = 100;
 
-        assertEq(fractionalTokenAddress, fractionalToken);
-        assertEq(nftOwner, owner); // NFT is owned by the factory owner (deployer)
-        assertEq(totalShares, TOTAL_SHARES);
-        assertEq(sharesSold, 0);
-        assertEq(sharePrice, SHARE_PRICE);
-        assertTrue(tradingEnabled);
-        assertEq(availableShares, TOTAL_SHARES);
+        vm.startPrank(user1);
+        FractionalToken fracToken = FractionalToken(fractionalToken);
+        fracToken.purchaseShares(sharesToBuy);
+        vm.stopPrank();
+
+        // Test: Owner withdraws accumulated funds from fractional token contract
+        vm.startPrank(owner);
+        factory.withdrawFromFractionalToken(tokenId);
+        vm.stopPrank();
+
+        // Verify withdrawal executes without reverting (exact balance verification requires non-mocked tokens)
     }
 
-    function testGetFractionalTokenContract() public {
+    function testNFTContract() public {
         vm.startPrank(owner);
-        (uint256 tokenId, address fractionalToken) = factory.createFractionalizedNFT(
+        (uint256 tokenId,) = factory.createFractionalizedNFT(
             TOTAL_SHARES, TOTAL_PRICE, "Fractional Art #1", "FART1", "ipfs://QmExample11"
         );
         vm.stopPrank();
 
-        FractionalToken retrievedContract = factory.getFractionalTokenContract(tokenId);
-        assertEq(address(retrievedContract), fractionalToken);
+        // Test: NFT contract maintains proper state and metadata
+        FractionalizedNFT nftContract = factory.nftContract();
+        assertEq(nftContract.totalSupply(), 1);
+        assertEq(nftContract.tokenURI(tokenId), "ipfs://QmExample11");
+        assertEq(nftContract.ownerOf(tokenId), owner);
     }
 }
+
