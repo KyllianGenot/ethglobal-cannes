@@ -1,0 +1,99 @@
+.footer {
+  background: linear-gradient(4.66deg, #FD8D6C -8%, transparent 20%);
+  color: black;
+  padding: 60px 0;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 100px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+.footer-column .footer-logo {
+  font-family: 'Bigilla', sans-serif;
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.footer-column p {
+  font-family: 'Helvetica', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #aaa;
+}
+
+.footer-column .footer-heading {
+  font-family: 'Adieu', sans-serif;
+  font-size: 18px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.footer-link {
+  display: block;
+  color: #aaa;
+  text-decoration: none;
+  margin-bottom: 12px;
+  font-family: 'Helvetica', sans-serif;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+  color: black;
+}
+
+.newsletter-form {
+  display: flex;
+}
+
+.newsletter-input {
+  flex-grow: 1;
+  background-color: rgba(51, 51, 51, 0.1);
+  border: 1px solid rgba(51, 51, 51, 0.1);
+  color: black;
+  padding: 10px 12px;
+  border-radius: 5px 0 0 5px;
+  font-family: 'Adieu', sans-serif;
+}
+
+.newsletter-button {
+  background-color: rgba(51, 51, 51, 0.2);
+  color: black;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: 'Adieu', sans-serif;
+  border-radius: 0 5px 5px 0;
+  transition: opacity 0.3s ease;
+}
+
+.newsletter-button:hover {
+  opacity: 0.8;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 40px;
+  font-family: 'Adieu', sans-serif;
+  font-size: 14px;
+  color: #aaa;
+}
+
+@media (min-width: 768px) {
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-content {
+    grid-template-columns: 2fr 0fr 0fr 0fr;
+    text-align: left;
+  }
+} 

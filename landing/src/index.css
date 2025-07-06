@@ -1,0 +1,66 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Love', sans-serif;
+  color: #fff;
+  background-color: #000;
+  width: 100vw;
+  overflow-x: hidden;
+  background-color: #F6F2EA;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+}
+
+@font-face {
+  font-family: 'Love';
+  src: url('/fonts/love.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Romie';
+  src: url('/fonts/romie.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal; 
+}
+
+@font-face {
+  font-family: 'Adieu';
+  src: url('/fonts/adieu.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Canela';
+  src: url('/fonts/canela.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bigilla';
+  src: url('/fonts/bigilla.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Helvetica';
+  src: url('/fonts/helveticaNowDisplay.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+::selection {
+  background-color: #FEA384;
+  color: black;
+}

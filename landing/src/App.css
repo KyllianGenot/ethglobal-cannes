@@ -1,0 +1,268 @@
+/* Base styles (Mobile) */
+.app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 900px;
+  width: 100vw;
+  position: relative;
+  background-image: url('/images/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: black;
+  z-index: 1;
+}
+
+.app::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, transparent, #F6F2EA);
+  z-index: 1;
+}
+
+.app-undertitle {
+  position: absolute;
+  font-family: 'Adieu', sans-serif;
+  font-size: 16px;
+  left: 24px;
+  top: 150px;
+}
+
+.app-title {
+  font-size: 80px;
+  text-align: center;
+  letter-spacing: -0.064em;
+  font-weight: 400;
+  font-style: normal;
+  font-feature-settings: "liga" on;
+}
+
+.app-sort {
+  display: none; /* Hidden on mobile */
+}
+
+.app-arrow {
+  display: none; /* Hidden on mobile */
+}
+
+.app-button {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 40px;
+  height: auto;
+  object-fit: contain;
+  background-color: white;
+  color: black;
+  font-family: "Adieu", sans-serif;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.app-button:hover {
+  opacity: 0.6;
+}
+
+.app-shop-button {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 40px;
+  background-color: white;
+  color: black;
+  font-family: 'Bigilla', sans-serif;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2;
+  text-transform: uppercase;
+}
+
+.app-shop-button:hover {
+  background-color: black;
+  color: white;
+}
+
+.app-monalisa {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) rotate(-10deg);
+  top: 60%;
+  width: auto;
+  height: 250px;
+  border-radius: 15px;
+  transform-origin: center;
+}
+
+.artwork-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 250px;
+  overflow: hidden;
+  display: flex;
+}
+
+.artwork-scroll {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  animation: none;
+}
+
+.artwork-container.scrolling .artwork-scroll {
+  animation: scrollLeft 60s linear infinite;
+}
+
+.artwork-item {
+  width: auto;
+  height: 250px;
+  border-radius: 15px;
+  flex-shrink: 0;
+  transform-origin: center;
+}
+
+.artwork-item.artwork-main {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(calc(50vw - 400px));
+  }
+  100% {
+    transform: translateX(calc(50vw - 400px - 2000px));
+  }
+}
+
+/* Tablet Styles */
+@media (min-width: 768px) {
+  .app-undertitle {
+    left: 40px;
+    top: 200px;
+    transform: none;
+  }
+  .app-title {
+    font-size: 140px;
+  }
+  .app-monalisa {
+    height: 350px;
+  }
+  .artwork-container {
+    height: 350px;
+  }
+  .artwork-item {
+    height: 350px;
+  }
+  .app-sort {
+    display: block;
+    position: absolute;
+    right: 50px;
+    top: 280px;
+    left: auto;
+    font-family: 'Canela', sans-serif;
+    font-size: 24px;
+    letter-spacing: -0.032em;
+    line-height: 0.8;
+  }
+  .app-sort-s1 { margin-left: 30px; }
+  .app-sort-s2 { margin-left: 100px; }
+  .app-sort-s3 { position: absolute; transform: translate(40px, 10px); }
+  .app-sort-s4 { position: absolute; transform: translate(30px, 100px); }
+
+  .app-arrow {
+    display: block;
+    position: absolute;
+    right: 80px;
+    top: auto;
+    bottom: 150px;
+    width: 100px;
+  }
+  .app-button {
+    left: auto;
+    right: 50px;
+    bottom: 50px;
+    transform: none;
+  }
+  .app-shop-button {
+    left: auto;
+    right: 50px;
+    bottom: 50px;
+    transform: none;
+  }
+}
+
+/* Desktop Styles */
+@media (min-width: 1024px) {
+  .app-undertitle {
+    left: 20%;
+    top: 40%;
+    font-size: 16px;
+    right: 60px;
+    transform: none;
+  }
+  .app-title {
+    font-size: 220px;
+  }
+  .app-monalisa {
+    height: 400px;
+  }
+  .artwork-container {
+    height: 400px;
+  }
+  .artwork-item {
+    height: 400px;
+  }
+  .app-sort {
+    font-size: 32px;
+    top: 45%;
+    transform: translateY(-50%);
+    left: auto;
+  }
+  .app-sort-s1 { margin-left: 50px; }
+  .app-sort-s2 { margin-left: 200px; }
+  .app-sort-s3 { transform: translate(70px, 10px); }
+  .app-sort-s4 { transform: translate(50px, 150px); }
+
+  .app-arrow {
+    right: 20%;
+    bottom: 120px;
+    width: 125px;
+  }
+  .app-button {
+    top: auto;
+    left: auto;
+    bottom: 60px;
+    right: 60px;
+    transform: none;
+  }
+  .app-shop-button {
+    font-size: 20px;
+    padding: 15px 30px;
+    right: 60px;
+    bottom: 60px;
+  }
+  .artwork-scroll {
+    gap: 50px;
+  }
+}
+
+.info-section-wrapper {
+  position: relative;
+  top: 600px;
+  background: linear-gradient(to bottom, #F6F2EA, #FDE5D8, #F6F2EA);
+}

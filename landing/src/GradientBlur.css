@@ -1,0 +1,11 @@
+.blur-container {
+  transition: transform 0.3s ease-in-out;
+}
+
+.blur-visible {
+  transform: translateY(0);
+}
+
+.blur-hidden {
+  transform: translateY(-200px);
+} 
