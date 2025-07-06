@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@layer base {
+  /* normal */
+  @font-face {
+    font-family: "Adelle Sans";
+    src: url("/fonts/AdelleSans-Regular.woff2") format("woff2");
+    font-style: normal;
+    font-display: swap;
+    font-weight: 300;
+  }
+
+  /* semibold */
+  @font-face {
+    font-family: "Adelle Sans";
+    src: url("/fonts/AdelleSans-Semibold.woff2") format("woff2");
+    font-style: normal;
+    font-display: swap;
+    font-weight: 600;
+  }
+}
