@@ -59,7 +59,7 @@
 }
 
 .faq-answer.active {
-  max-height: 200px; /* Adjust if answers are longer */
+  max-height: 200px;
   transition: max-height 0.5s ease-in;
 }
 
@@ -70,9 +70,3 @@
   line-height: 1.6;
   color: #333;
 }
-
-@media (min-width: 1024px) {
-  .faq-section {
-    /* padding: 120px 180px; */
-  }
-} 

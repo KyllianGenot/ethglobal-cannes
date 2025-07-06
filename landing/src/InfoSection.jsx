@@ -6,7 +6,7 @@ const InfoSection = () => {
     <div className="info-section">
       <div className="info-text">
         <p>
-          A novel space for artists & collectors to invest in fractional ownership of real-world art.
+          A novel space for artists and collectors to invest in fractional ownership of real-world art.
         </p>
       </div>
       <div className="frames-wrapper">
